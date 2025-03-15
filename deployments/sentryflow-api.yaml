@@ -13,11 +13,10 @@ spec:
       labels:
         app: sentryflow-api
     spec:
-      imagePullSecrets:
-        - name: regcred
       containers:
         - name: sentryflow-api
           image: ysm030/sentryflow-api:v0.1
+          imagePullPolicy: Always
           ports:
             - containerPort: 9090
           env:

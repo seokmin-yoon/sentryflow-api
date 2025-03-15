@@ -1,5 +1,7 @@
 FROM golang:alpine AS builder
 
+RUN apk add --no-cache git ca-certificates && update-ca-certificates
+
 WORKDIR /app
 
 COPY . .

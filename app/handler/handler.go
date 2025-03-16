@@ -47,12 +47,11 @@ func APILogHander(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	collection := client.Database("sentryflow").Collection("APILogs")
+	collection := client.Database("SentryFlow").Collection("APILogs")
 
 	switch r.Method {
 	case http.MethodGet:
 		// Get API Logs from MongoDB
-		var logs []model.APILog
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
@@ -64,6 +63,50 @@ func APILogHander(w http.ResponseWriter, r *http.Request) {
 		}
 		defer cursor.Close(ctx)
 
+		var logs []model.APILog
+		for cursor.Next(ctx) {
+			var logEntry model.APILog
+			if err := cursor.Decode(&logEntry); err != nil {
+				http.Error(w, "Error decoding API Logs", http.StatusInternalServerError)
+				return
+			}
+			logs = append(logs, logEntry)
+		}
+
+		json.NewEncoder(w).Encode(logs)
+
+	default:
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+	}
+}
+
+func APIMetricHander(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	client, err := config.GetMongoClient()
+	if err != nil {
+		http.Error(w, "Failed to connect to MongoDB", http.StatusInternalServerError)
+		log.Printf("[MongoDB] Connection error: %v", err)
+		return
+	}
+
+	collection := client.Database("SentryFlow").Collection("APIMetrics")
+
+	switch r.Method {
+	case http.MethodGet:
+		// Get API Logs from MongoDB
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		cursor, err := collection.Find(ctx, bson.M{})
+		if err != nil {
+			http.Error(w, "Failed to fetch API Logs", http.StatusInternalServerError)
+			log.Printf("[MongoDB] Query error: %v", err)
+			return
+		}
+		defer cursor.Close(ctx)
+
+		var logs []model.APILog
 		for cursor.Next(ctx) {
 			var logEntry model.APILog
 			if err := cursor.Decode(&logEntry); err != nil {

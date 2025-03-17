@@ -23,7 +23,8 @@ func GetMongoClient() (*mongo.Client, error) {
 		defer cancel()
 
 		// os.Getenv("MONGODB_ADDR") => mongodb://mongodb:27017
-		clientOptions := options.Client().ApplyURI("mongodb://mongodb:27017")
+		// mongodb://mongodb.sentryflow.svc.cluster.local:27017
+		clientOptions := options.Client().ApplyURI("mongodb://mongodb.sentryflow.svc.cluster.local:27017")
 		mongoClient, err = mongo.Connect(ctx, clientOptions)
 		if err != nil {
 			log.Fatalf("[MongoDB] Connection error: %v", err)

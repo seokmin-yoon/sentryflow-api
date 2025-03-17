@@ -1,5 +1,7 @@
 package model
 
+import "time"
+
 type User struct {
 	ID   int    `json:"id"`
 	Name string `json:"name"`
@@ -46,4 +48,29 @@ type EnvoyMetrics struct {
 	IPAddress string                 `json:"ipAddress"`
 	Labels    map[string]string      `json:"labels"`
 	Metrics   map[string]MetricValue `json:"metrics"`
+}
+
+type Cluster struct {
+	Name       string      `json:"name"`
+	Namespaces []Namespace `json:"namespaces"`
+	Nodes      []Node      `json:"nodes"`
+}
+
+type Node struct {
+	Name             string    `json:"name"`
+	KernelVersion    string    `json:"kernel_version"`
+	OSImage          string    `json:"os_image"`
+	ContainerRuntime string    `json:"container_runtime"`
+	KubeletVersion   string    `json:"kubelet_version"`
+	KubeProxyVersion string    `json:"kubeproxy_version"`
+	PodCIDR          string    `json:"pod_cidr,omitempty"`
+	ProviderID       string    `json:"provider_id,omitempty"`
+	SystemUUID       string    `json:"system_uuid"`
+	InternalIP       string    `json:"internal_ip"`
+	CreatedAt        time.Time `json:"created_at"`
+}
+
+type Namespace struct {
+	Name  string `json:"name"`
+	Phase string `json:"phase"` // Active or Terminating
 }

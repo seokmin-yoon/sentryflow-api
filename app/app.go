@@ -18,7 +18,7 @@ func Run() {
 	r.HandleFunc("/users", handler.UsersHandler).Methods("GET")
 	// api log
 	r.HandleFunc("/api/logs", handler.APILogsHander).Methods("GET")
-	r.HandleFunc("/api/logs/{namespace}", handler.NamespaceAPILogsHandler).Methods("GET")
+	r.HandleFunc("/api/logs/namespaces/{namespace}", handler.NamespaceAPILogsHandler).Methods("GET")
 	// envoy
 	r.HandleFunc("/envoy/metrics", handler.EnvoyMetricsHander).Methods("GET")
 	// cluster

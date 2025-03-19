@@ -1,8 +1,11 @@
 package handler
 
 import (
+	
 	"sentryflow-api/app/model"
-	"time"
+
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	v1 "k8s.io/api/core/v1"
 )
 
 // stored data example
@@ -18,32 +21,54 @@ var (
 				{Name: "dev", Phase: "Active"},
 				{Name: "prod", Phase: "Active"},
 			},
-			Nodes: []model.Node{
+			Pods: []model.Pod{
 				{
-					Name:             "node-1",
-					KernelVersion:    "5.15.0-79-generic",
-					OSImage:          "Ubuntu 22.04 LTS",
-					ContainerRuntime: "containerd://1.6.18",
-					KubeletVersion:   "v1.26.3",
-					KubeProxyVersion: "v1.26.3",
-					PodCIDR:          "10.244.0.0/24",
-					ProviderID:       "aws://us-west-2/i-1234567890abcdef0",
-					SystemUUID:       "4f82cb20-5b7f-11ea-9fbb-00155d6402da",
-					InternalIP:       "192.168.1.10",
-					CreatedAt:        time.Now(),
+					TypeMeta: metav1.TypeMeta{Kind: "Pod", APIVersion: "v1"},
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "nginx-pod-1",
+						Namespace: "default",
+						Labels:    map[string]string{"app": "nginx"},
+					},
+					Spec: v1.PodSpec{
+						Containers: []v1.Container{
+							{
+								Name:  "nginx-container",
+								Image: "nginx:latest",
+								Ports: []v1.ContainerPort{
+									{ContainerPort: 80},
+								},
+							},
+						},
+					},
+					Status: v1.PodStatus{
+						Phase:  v1.PodRunning,
+						PodIP:  "10.244.1.10",
+						HostIP: "192.168.1.100",
+					},
 				},
 				{
-					Name:             "node-2",
-					KernelVersion:    "5.15.0-79-generic",
-					OSImage:          "Ubuntu 22.04 LTS",
-					ContainerRuntime: "containerd://1.6.18",
-					KubeletVersion:   "v1.26.3",
-					KubeProxyVersion: "v1.26.3",
-					PodCIDR:          "10.244.1.0/24",
-					ProviderID:       "aws://us-west-2/i-1234567890abcdef1",
-					SystemUUID:       "4f82cb20-5b7f-11ea-9fbb-00155d6402db",
-					InternalIP:       "192.168.1.11",
-					CreatedAt:        time.Now(),
+					TypeMeta: metav1.TypeMeta{Kind: "Pod", APIVersion: "v1"},
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "api-server",
+						Namespace: "dev",
+						Labels:    map[string]string{"app": "api"},
+					},
+					Spec: v1.PodSpec{
+						Containers: []v1.Container{
+							{
+								Name:  "api-container",
+								Image: "my-api:v1.0",
+								Ports: []v1.ContainerPort{
+									{ContainerPort: 8080},
+								},
+							},
+						},
+					},
+					Status: v1.PodStatus{
+						Phase:  v1.PodRunning,
+						PodIP:  "10.244.2.15",
+						HostIP: "192.168.1.101",
+					},
 				},
 			},
 		},
@@ -54,19 +79,30 @@ var (
 				{Name: "kube-public", Phase: "Active"},
 				{Name: "staging", Phase: "Active"},
 			},
-			Nodes: []model.Node{
+			Pods: []model.Pod{
 				{
-					Name:             "node-3",
-					KernelVersion:    "5.10.0-60-generic",
-					OSImage:          "Ubuntu 20.04 LTS",
-					ContainerRuntime: "docker://20.10.18",
-					KubeletVersion:   "v1.25.6",
-					KubeProxyVersion: "v1.25.6",
-					PodCIDR:          "10.245.0.0/24",
-					ProviderID:       "gce://us-central1/i-234567890abcdef0",
-					SystemUUID:       "5f92cb20-6b8f-12eb-8fcd-00265d6403da",
-					InternalIP:       "192.168.2.10",
-					CreatedAt:        time.Now(),
+					TypeMeta: metav1.TypeMeta{Kind: "Pod", APIVersion: "v1"},
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "database-pod",
+						Namespace: "staging",
+						Labels:    map[string]string{"app": "database"},
+					},
+					Spec: v1.PodSpec{
+						Containers: []v1.Container{
+							{
+								Name:  "db-container",
+								Image: "postgres:14",
+								Ports: []v1.ContainerPort{
+									{ContainerPort: 5432},
+								},
+							},
+						},
+					},
+					Status: v1.PodStatus{
+						Phase:  v1.PodPending,
+						PodIP:  "10.244.3.20",
+						HostIP: "192.168.1.102",
+					},
 				},
 			},
 		},

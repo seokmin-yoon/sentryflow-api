@@ -1,6 +1,9 @@
 package model
 
-import "time"
+import (
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	v1 "k8s.io/api/core/v1"
+)
 
 type User struct {
 	ID   int    `json:"id"`
@@ -13,21 +16,19 @@ type APILog struct {
 
 	SrcNamespace string            `json:"srcNamespace"`
 	SrcName      string            `json:"srcName"`
-	SrcLabel     map[string]string `json:"srcLabel"`
-
+//	SrcLabel     map[string]string `json:"srcLabel"`
 	SrcType string `json:"srcType"`
 	SrcIP   string `json:"srcIP"`
 	SrcPort string `json:"srcPort"`
 
 	DstNamespace string            `json:"dstNamespace"`
 	DstName      string            `json:"dstName"`
-	DstLabel     map[string]string `json:"dstLabel"`
-
+//	DstLabel     map[string]string `json:"dstLabel"`
 	DstType string `json:"dstType"`
 	DstIP   string `json:"dstIP"`
 	DstPort string `json:"dstPort"`
 
-	Protocol     string `json:"protocol"`
+//	Protocol     string `json:"protocol"`
 	Method       string `json:"method"`
 	Path         string `json:"path"`
 	ResponseCode int32  `json:"responseCode"`
@@ -53,21 +54,15 @@ type EnvoyMetrics struct {
 type Cluster struct {
 	Name       string      `json:"name"`
 	Namespaces []Namespace `json:"namespaces"`
-	Nodes      []Node      `json:"nodes"`
+	Pods	   []Pod	   `json:"pods"`
 }
 
-type Node struct {
-	Name             string    `json:"name"`
-	KernelVersion    string    `json:"kernel_version"`
-	OSImage          string    `json:"os_image"`
-	ContainerRuntime string    `json:"container_runtime"`
-	KubeletVersion   string    `json:"kubelet_version"`
-	KubeProxyVersion string    `json:"kubeproxy_version"`
-	PodCIDR          string    `json:"pod_cidr,omitempty"`
-	ProviderID       string    `json:"provider_id,omitempty"`
-	SystemUUID       string    `json:"system_uuid"`
-	InternalIP       string    `json:"internal_ip"`
-	CreatedAt        time.Time `json:"created_at"`
+type Pod struct {
+    metav1.TypeMeta   `json:",inline"`
+    metav1.ObjectMeta `json:"metadata,omitempty"`
+
+    Spec   v1.PodSpec   `json:"spec,omitempty"`
+    Status v1.PodStatus `json:"status,omitempty"`
 }
 
 type Namespace struct {

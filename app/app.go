@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"sentryflow-api/app/handler"
 
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 )
 
@@ -13,7 +14,6 @@ func Run() {
 	r := mux.NewRouter()
 
 	// 기본 핸들러 등록
-	// test
 	r.HandleFunc("/ping", handler.PingHandler).Methods("GET")
 	r.HandleFunc("/users", handler.UsersHandler).Methods("GET")
 	// api log
@@ -25,8 +25,14 @@ func Run() {
 	r.HandleFunc("/clusters", handler.ClustersHander).Methods("GET")
 	r.HandleFunc("/clusters/{cluster}", handler.ClustersHander).Methods("GET")
 	r.HandleFunc("/clusters/{cluster}/namespaces", handler.ClustersHander).Methods("GET")
-	//r.HandleFunc("/clusters/{cluster}/namespaces/{namespace}/pods", handler.ClustersHander).Methods("GET")
+
+	// CORS 미들웨어 적용
+	corsHandler := handlers.CORS(
+		handlers.AllowedOrigins([]string{"*"}),                                       // 모든 도메인 허용
+		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}), // 허용할 HTTP 메서드
+		handlers.AllowedHeaders([]string{"Content-Type", "Authorization"}),           // 허용할 헤더
+	)
 
 	log.Println("Server running on port 9090")
-	log.Fatal(http.ListenAndServe(":9090", r))
+	log.Fatal(http.ListenAndServe(":9090", corsHandler(r))) // CORS 적용
 }

@@ -1,16 +1,17 @@
 package handler
 
 import (
-	
-	"sentryflow-api/app/model"
+	"time"
 
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	v1 "k8s.io/api/core/v1"
+	"sentryflow-api/app/model"
 )
 
 // stored data example
 var (
-	users = []model.User{{ID: 1, Name: "Alice"}, {ID: 2, Name: "Bob"}}
+	users = []model.User{
+		{ID: 1, Name: "Alice"},
+		{ID: 2, Name: "Bob"},
+	}
 
 	clusters = []model.Cluster{
 		{
@@ -23,52 +24,24 @@ var (
 			},
 			Pods: []model.Pod{
 				{
-					TypeMeta: metav1.TypeMeta{Kind: "Pod", APIVersion: "v1"},
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      "nginx-pod-1",
-						Namespace: "default",
-						Labels:    map[string]string{"app": "nginx"},
-					},
-					Spec: v1.PodSpec{
-						Containers: []v1.Container{
-							{
-								Name:  "nginx-container",
-								Image: "nginx:latest",
-								Ports: []v1.ContainerPort{
-									{ContainerPort: 80},
-								},
-							},
-						},
-					},
-					Status: v1.PodStatus{
-						Phase:  v1.PodRunning,
-						PodIP:  "10.244.1.10",
-						HostIP: "192.168.1.100",
-					},
+					ID:          "0",
+					Name:        "sleep-7656cf8794-tpc4k",
+					PodIP:       "10.244.0.12",
+					ClusterName: "Cluster-A",
+					Namespace:   "default",
+					QosClass:    "BestEffort",
+					Status:      "Running",
+					Timestamp:   time.Now().Format(time.RFC3339),
 				},
 				{
-					TypeMeta: metav1.TypeMeta{Kind: "Pod", APIVersion: "v1"},
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      "api-server",
-						Namespace: "dev",
-						Labels:    map[string]string{"app": "api"},
-					},
-					Spec: v1.PodSpec{
-						Containers: []v1.Container{
-							{
-								Name:  "api-container",
-								Image: "my-api:v1.0",
-								Ports: []v1.ContainerPort{
-									{ContainerPort: 8080},
-								},
-							},
-						},
-					},
-					Status: v1.PodStatus{
-						Phase:  v1.PodRunning,
-						PodIP:  "10.244.2.15",
-						HostIP: "192.168.1.101",
-					},
+					ID:          "1",
+					Name:        "httpbin-6c4d945c8d-p2tnw",
+					PodIP:       "10.244.0.11",
+					ClusterName: "Cluster-A",
+					Namespace:   "default",
+					QosClass:    "BestEffort",
+					Status:      "Running",
+					Timestamp:   time.Now().Format(time.RFC3339),
 				},
 			},
 		},
@@ -81,28 +54,14 @@ var (
 			},
 			Pods: []model.Pod{
 				{
-					TypeMeta: metav1.TypeMeta{Kind: "Pod", APIVersion: "v1"},
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      "database-pod",
-						Namespace: "staging",
-						Labels:    map[string]string{"app": "database"},
-					},
-					Spec: v1.PodSpec{
-						Containers: []v1.Container{
-							{
-								Name:  "db-container",
-								Image: "postgres:14",
-								Ports: []v1.ContainerPort{
-									{ContainerPort: 5432},
-								},
-							},
-						},
-					},
-					Status: v1.PodStatus{
-						Phase:  v1.PodPending,
-						PodIP:  "10.244.3.20",
-						HostIP: "192.168.1.102",
-					},
+					ID:          "0",
+					Name:        "sentryflow-api-bc84df6ff-kg8cl",
+					PodIP:       "10.244.0.13",
+					ClusterName: "Cluster-B",
+					Namespace:   "sentryflow",
+					QosClass:    "BestEffort",
+					Status:      "Running",
+					Timestamp:   time.Now().Format(time.RFC3339),
 				},
 			},
 		},

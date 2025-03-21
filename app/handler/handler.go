@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"sentryflow-api/app/model"
@@ -40,10 +41,17 @@ func APILogsHander(w http.ResponseWriter, r *http.Request) {
 	collection := client.Database("SentryFlow").Collection("APILogs")
 
 	// Get API Logs from MongoDB
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second) // timeout 5s
 	defer cancel()
 
-	cursor, err := collection.Find(ctx, bson.M{})
+	// 현재 시간 기준 5분 전 타임스탬프 (Unix 기준, string으로 변환)
+	fiveMinutesAgo := time.Now().Add(-5 * time.Minute).Unix()
+	filter := bson.M{
+		"timestamp": bson.M{"$gte": strconv.FormatInt(fiveMinutesAgo, 10)},
+	}
+
+	//cursor, err := collection.Find(ctx, bson.M{})
+	cursor, err := collection.Find(ctx, filter)
 	if err != nil {
 		http.Error(w, "Failed to fetch API Logs", http.StatusInternalServerError)
 		log.Printf("[MongoDB] Query error: %v", err)
@@ -58,12 +66,30 @@ func APILogsHander(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Error decoding API Logs", http.StatusInternalServerError)
 			return
 		}
+
+		// timestamp 변환 (string -> RFC3339)
+		logEntry.TimeStamp = convertTimestamp(logEntry.TimeStamp)
 		logs = append(logs, logEntry)
 	}
 
 	log.Printf("[Response] Returning %d logs", len(logs))
 
 	json.NewEncoder(w).Encode(logs)
+}
+
+// convertTimestamp - string timestamp를 RFC3339 형식으로 변환
+func convertTimestamp(timestamp interface{}) string {
+	switch v := timestamp.(type) {
+	case string:
+		if tsInt, err := strconv.ParseInt(v, 10, 64); err == nil {
+			return time.Unix(tsInt, 0).UTC().Format(time.RFC3339)
+		}
+		log.Printf("[Warning] Invalid timestamp format: %v", v)
+		return v
+	default:
+		log.Printf("[Warning] Unknown timestamp format: %v", v)
+		return "unknown"
+	}
 }
 
 func NamespaceAPILogsHandler(w http.ResponseWriter, r *http.Request) {
@@ -213,19 +239,19 @@ func ClustersHander(w http.ResponseWriter, r *http.Request) {
 
 			// GET /clusters/{cluster}/namespaces/{namespace}/pods 특정 네임스페이스 내의 모든 파드 반환
 			/*
-			if namespaceName != "" && r.URL.Path == "/clusters/"+clusterName+"/namespaces/"+namespaceName+"/pods" {
-				// 특정 네임스페이스 찾기
-				for _, namespace := range cluster.Namespaces {
-					if namespace.Name == namespaceName {
-						log.Printf("[Response] Returning pods for namespace %s in cluster %s", namespaceName, clusterName)
-						json.NewEncoder(w).Encode(namespace.Pods)
-						return
+				if namespaceName != "" && r.URL.Path == "/clusters/"+clusterName+"/namespaces/"+namespaceName+"/pods" {
+					// 특정 네임스페이스 찾기
+					for _, namespace := range cluster.Namespaces {
+						if namespace.Name == namespaceName {
+							log.Printf("[Response] Returning pods for namespace %s in cluster %s", namespaceName, clusterName)
+							json.NewEncoder(w).Encode(namespace.Pods)
+							return
+						}
 					}
+					// 네임스페이스를 찾지 못한 경우
+					http.Error(w, "Namespace not found", http.StatusNotFound)
+					return
 				}
-				// 네임스페이스를 찾지 못한 경우
-				http.Error(w, "Namespace not found", http.StatusNotFound)
-				return
-			}
 			*/
 			// 클러스터는 찾았으나 다른 요청의 경우
 			http.Error(w, "Invalid request", http.StatusBadRequest)

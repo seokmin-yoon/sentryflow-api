@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: sentryflow
+  name: sentryflow-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sentryflow-api
+  template:
+    metadata:
+      labels:
+        app: sentryflow-api
+    spec:
+      containers:
+        - name: sentryflow-api
+          image: ysm030/sentryflow-api:v0.1
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 9090
+          env:
+            - name: MONGODB_ADDR
+              value: "mongodb://mongodb:27017"

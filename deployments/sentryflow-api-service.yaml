@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: sentryflow
+  name: sentryflow-api
+spec:
+  selector:
+    app: sentryflow-api
+  ports:
+  - protocol: TCP
+    port: 80      
+    targetPort: 9090
+  type: NodePort

@@ -168,7 +168,8 @@ func convertTimestamp(timestamp interface{}) string {
 	switch v := timestamp.(type) {
 	case string:
 		if tsInt, err := strconv.ParseInt(v, 10, 64); err == nil {
-			return time.Unix(tsInt, 0).UTC().Format(time.RFC3339)
+			//return time.Unix(tsInt, 0).UTC().Format(time.RFC3339)
+			return time.Unix(tsInt, 0).UTC().Format("2006-01-02 15:04:05")
 		}
 		log.Printf("[Warning] Invalid timestamp format: %v", v)
 		return v

@@ -104,25 +104,25 @@ func findCluster(ctx context.Context, resourceType, name, namespace string, pods
 		err = servicesCol.FindOne(ctx, filter).Decode(&result)
 	default:
 		log.Printf("[Cluster Lookup] Unknown resource type: %s", resourceType)
-		return "Unknown"
+		return "cluster1"
 	}
 
 	if err != nil {
 		log.Printf("[Cluster Lookup] Not found: %s/%s (%s): %v", namespace, name, resourceType, err)
-		return "Unknown"
+		return "cluster1"
 	}
 
 	return result.Cluster
 }
 
-func fillMissingSourceInfo(ctx context.Context, logEntry *model.APILog, servicesCol *mongo.Collection) {
+func fillMissingSourceInfo(ctx context.Context, logEntry *model.APILog, servicesCol *mongo.Collection) bool {
 	if logEntry.SrcNamespace != "Unknown" {
-		return
+		return true
 	}
 	cursor, err := servicesCol.Find(ctx, bson.M{"loadbalancerips": bson.M{"$in": []string{logEntry.SrcIP}}})
 	if err != nil {
 		log.Printf("[MongoDB] Error checking services for SrcIP: %v", err)
-		return
+		return false
 	}
 	defer cursor.Close(ctx)
 
@@ -135,18 +135,19 @@ func fillMissingSourceInfo(ctx context.Context, logEntry *model.APILog, services
 		logEntry.SrcType = "Service"
 		logEntry.SrcNamespace = service.Namespace
 		logEntry.SrcName = service.Name
-		break
+		return true
 	}
+	return false
 }
 
-func fillMissingDestInfo(ctx context.Context, logEntry *model.APILog, servicesCol *mongo.Collection) {
+func fillMissingDestInfo(ctx context.Context, logEntry *model.APILog, servicesCol *mongo.Collection) bool {
 	if logEntry.DstNamespace != "Unknown" {
-		return
+		return true
 	}
 	cursor, err := servicesCol.Find(ctx, bson.M{"loadbalancerips": bson.M{"$in": []string{logEntry.DstIP}}})
 	if err != nil {
 		log.Printf("[MongoDB] Error checking services for DstIP: %v", err)
-		return
+		return false
 	}
 	defer cursor.Close(ctx)
 
@@ -159,8 +160,9 @@ func fillMissingDestInfo(ctx context.Context, logEntry *model.APILog, servicesCo
 		logEntry.DstType = "Service"
 		logEntry.DstNamespace = service.Namespace
 		logEntry.DstName = service.Name
-		break
+		return true
 	}
+	return false
 }
 
 // convertTimestamp - string timestamp를 RFC3339 형식으로 변환
@@ -263,8 +265,9 @@ func FilterAPILogsHandler(w http.ResponseWriter, r *http.Request) {
 		logEntry.DstCluster = findCluster(ctx, logEntry.DstType, logEntry.DstName, logEntry.DstNamespace, podsCol, servicesCol)
 
 		// Unknown 채우기
-		fillMissingSourceInfo(ctx, &logEntry, servicesCol)
-		fillMissingDestInfo(ctx, &logEntry, servicesCol)
+		if !fillMissingSourceInfo(ctx, &logEntry, servicesCol) || !fillMissingDestInfo(ctx, &logEntry, servicesCol) {
+			continue
+		}
 
 		// timestamp 변환 (string -> RFC3339)
 		logEntry.TimeStamp = convertTimestamp(logEntry.TimeStamp)
